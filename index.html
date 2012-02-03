@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>MyProject's Libraries</title>
+<link rel="stylesheet" type="text/css" href="podstyle.css" />
+<script type="text/javascript">
+//<![CDATA[
+var managers = [{"records":[{"name":"README","title":"","path":"README.pod.html"}],"desc":"Perl Manuals"},{"records":[{"name":"PLCB_Config","title":"","path":"PLCB_Config.pm.html"},{"name":"lib-Couchbase-Client","title":"Perl Couchbase Client","path":"lib/Couchbase/Client.pm.html"},{"name":"lib-Couchbase-Client-Async","title":"Asynchronous system for couchbase clients.","path":"lib/Couchbase/Client/Async.pm.html"},{"name":"lib-Couchbase-Client-Async-Event","title":"Couchbase::Client::Async::Event","path":"lib/Couchbase/Client/Async/Event.pm.html"},{"name":"lib-Couchbase-Client-Async-Request","title":"Couchbase::Client::Async::Request - Request container for asynchronous\ncouchbase client","path":"lib/Couchbase/Client/Async/Request.pm.html"},{"name":"lib-Couchbase-Client-Compat","title":"Cache::Memcached::-compatible interface","path":"lib/Couchbase/Client/Compat.pm.html"},{"name":"lib-Couchbase-Client-Errors","title":"Error definitions for Couchbase","path":"lib/Couchbase/Client/Errors.pm.html"},{"name":"lib-Couchbase-Client-Errors_const","title":"","path":"lib/Couchbase/Client/Errors_const.pm.html"},{"name":"lib-Couchbase-Client-IDXConst","title":"","path":"lib/Couchbase/Client/IDXConst.pm.html"},{"name":"lib-Couchbase-Client-IDXConst_const","title":"","path":"lib/Couchbase/Client/IDXConst_const.pm.html"},{"name":"lib-Couchbase-Client-Return","title":"Common return datatype for Couchbase","path":"lib/Couchbase/Client/Return.pm.html"},{"name":"lib-Couchbase-Config","title":"","path":"lib/Couchbase/Config.pm.html"},{"name":"lib-Couchbase-Config-Node","title":"","path":"lib/Couchbase/Config/Node.pm.html"},{"name":"lib-Couchbase-Config-UA","title":"","path":"lib/Couchbase/Config/UA.pm.html"},{"name":"lib-Couchbase-MockServer","title":"","path":"lib/Couchbase/MockServer.pm.html"},{"name":"lib-Couchbase-Test-Async","title":"","path":"lib/Couchbase/Test/Async.pm.html"},{"name":"lib-Couchbase-Test-Async-Loop","title":"","path":"lib/Couchbase/Test/Async/Loop.pm.html"},{"name":"lib-Couchbase-Test-ClientSync","title":"","path":"lib/Couchbase/Test/ClientSync.pm.html"},{"name":"lib-Couchbase-Test-Common","title":"","path":"lib/Couchbase/Test/Common.pm.html"},{"name":"lib-Couchbase-Test-Settings","title":"","path":"lib/Couchbase/Test/Settings.pm.html"},{"name":"lib-Couchbase-VBucket","title":"","path":"lib/Couchbase/VBucket.pm.html"},{"name":"t-CouchAsync","title":"","path":"t/CouchAsync.pm.html"},{"name":"t-CouchDebug","title":"","path":"t/CouchDebug.pm.html"},{"name":"t-CouchMulti","title":"","path":"t/CouchMulti.pm.html"}],"desc":"Perl Modules"},{"records":[{"name":"author_utils-bench","title":"","path":"author_utils/bench.pl.html"},{"name":"author_utils-conftest","title":"","path":"author_utils/conftest.pl.html"},{"name":"author_utils-echo","title":"","path":"author_utils/echo.pl.html"},{"name":"author_utils-echo_mock","title":"","path":"author_utils/echo_mock.pl.html"},{"name":"author_utils-run_mock","title":"","path":"author_utils/run_mock.pl.html"},{"name":"author_utils-testone","title":"","path":"author_utils/testone.pl.html"},{"name":"error_constants","title":"","path":"error_constants.pl.html"},{"name":"idx_constants","title":"","path":"idx_constants.pl.html"},{"name":"print_constants","title":"","path":"print_constants.pl.html"}],"desc":"Trigger Scripts"}];
+function render(pattern) {
+    var html = '';
+    for ( var i = 0; i < managers.length; i++ ) {
+        var manager   = managers[i];
+        var rows_html = get_rows_html(manager, pattern);
+        var listbox = "<div class='box'><h2 class='t2'>"
+                    + manager.desc
+                    + "</h2><table width='100%'>"
+                    + rows_html
+                    + "</table></div>";
+        html += listbox;
+    }
+    var list = document.getElementById('list');
+    list.innerHTML = html;
+}
+function get_rows_html (manager, pattern) {
+    var html   = '';
+    var regexp = new RegExp( "(" + pattern + ")", "gi");
+    var seq    = 0;
+    for (var i = 0; i < manager.records.length; i++) {
+        var record = manager.records[i];
+        if ( record.name.match(regexp) ) {
+            var module_name = manager.records[i].name;
+            if(pattern != '' ) {
+                var replace_text = "<span class='search_highlight'>$1</span>";
+                module_name = module_name.replace(regexp, replace_text);
+            }
+            html += get_record_html(record, module_name, seq);
+            seq++;
+        }
+    }
+    return html;
+}
+function get_record_html (record, name, i) {
+    var row_class  = ( i % 2 == 0 ) ? 'r' : 's';
+    var row_html   = "<tr class='"
+                   + row_class
+                   + "'><td nowrap='nowrap'><a href='"
+                   + record.path
+                   + "'>"
+                   + name + "</a></td><td width='99%'><small>"
+                   + record.title
+                   + "</small></td></tr>";
+    return row_html;
+}
+//]]>
+</script>
+</head>
+<body onload="render('')">
+<div class="box">
+  <h1 class="t1">MyProject's Libraries</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+
+<div class="box">
+  <h2 class="t2">Search</h2>
+  <table>
+    <tr>
+       <td class="cell"><input type="text" size="60" onkeyup="render(this.value)" /></td>
+    </tr>
+  </table>
+</div>
+
+<div id="list">
+</div>
+
+
+<div class="footer">generated by <a href="http://search.cpan.org/perldoc?Pod%3A%3AProjectDocs">Pod::ProjectDocs</a></div>
+</body>
+</html>

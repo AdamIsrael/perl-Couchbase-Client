@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<title>Couchbase::Client::Async</title>
+<link rel="stylesheet" type="text/css" href="../../../podstyle.css" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script type="text/javascript">
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  </script></head>
+<body>
+<div class="box">
+  <h1 class="t1">MyProject's Libraries</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../../index.html">MyProject's Libraries</a> &gt; Perl Modules &gt;
+  lib-Couchbase-Client-Async
+</div>
+<div>
+<a href="../../../src/lib/Couchbase/Client/Async.pm">Source</a>
+</div>
+
+
+<div class="pod">
+<!-- INDEX START -->
+<h3 id="TOP">Index</h3>
+<ul>
+	<li><a href="#NAME">NAME</a></li>
+	<li><a href="#DESCRIPTION">DESCRIPTION</a><br />
+<ul>
+	<li><a href="#I_O_Events">I/O Events</a></li>
+	<li><a href="#Command_Results_and_Events">Command Results and Events</a></li>
+</ul>
+</li>
+	<li><a href="#EVENT_MANAGEMENT">EVENT MANAGEMENT</a><br />
+<ul>
+<li>
+<ul>
+	<li><a href="#code_cb_update_event_code"><code>cb_update_event</code></a></li>
+	<li><a href="#code_cb_update_timer_code"><code>cb_update_timer</code></a></li>
+	<li><a href="#code_cb_waitdone_code"><code>cb_waitdone</code></a></li>
+	<li><a href="#code_cb_error_code"><code>cb_error</code></a></li>
+</ul>
+</li>
+	<li><a href="#code_HaveEvent_code"><code>HaveEvent</code></a></li>
+</ul>
+</li>
+	<li><a href="#COUCHBASE_COMMANDS_AND_RESULTS">COUCHBASE COMMANDS AND RESULTS</a><br />
+<ul>
+	<li><a href="#code_request_code"><code>request</code></a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<!-- INDEX END -->
+
+<h1 id="NAME">NAME <a href="#TOP" class="toplink"><img alt="^" src="../../../up.gif" /></a></h1>
+
+<p>Couchbase::Client::Async - Asynchronous system for couchbase clients.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION <a href="#TOP" class="toplink"><img alt="^" src="../../../up.gif" /></a></h1>
+
+<p>This is a module intended for use by other higher level components which interact
+directly with Perl event frameworks.</p>
+
+<p>libcouchbase allows for pluggable event loops, which drive and tell it about
+file descriptor events, timeouts, and other such nicetis.</p>
+
+<p>The purpose of this module is to provide a unified library for perl, which will
+be compatible with <a href="http://search.cpan.org/perldoc?POE">POE</a>,  <a href="http://search.cpan.org/perldoc?AnyEvent">AnyEvent</a>, <a href="http://search.cpan.org/perldoc?IO%3A%3AAsync">IO::Async</a> and other event loops.</p>
+
+<p>The module is divided into two components:</p>
+
+<h2 id="I_O_Events">I/O Events</h2>
+
+<p>This part of the module provides an interface for event libraries to tell
+libcouchbase about events, and conversely, have libcouchbase tell the event
+library about new file descriptors and events.</p>
+
+<h2 id="Command_Results_and_Events">Command Results and Events</h2>
+
+<p>This part of the module provides a framework in which event libraries can provide
+interfaces to users, so that they can perform commands on a couchbase cluster, and
+receive their results asynchronously.</p>
+
+<h1 id="EVENT_MANAGEMENT">EVENT MANAGEMENT <a href="#TOP" class="toplink"><img alt="^" src="../../../up.gif" /></a></h1>
+
+<p>Event, Timer, and I/O management is the lower level of this module, and constitutes
+the interface which event loop integrators would need to be most attune to.</p>
+
+<p>At the most basic level, you are required to implement four callbacks. These
+callbacks are indicated by values passed to their given hash keys in the object's
+constructor.</p>
+
+<h3 id="code_cb_update_event_code"><code>cb_update_event</code></h3>
+
+<pre>    cb_update_event =&gt; sub {
+        my ($evdata,$action,$flags) = @_;
+
+        if(ref($evdata) ne &quot;Couchbase::Client::Event&quot;) {
+            bless $evdata, &quot;Couchbase::Client::Event&quot;;
+        }
+        ...
+    };
+
+</pre><p>This callback is invoked to update and/or modify events. It receives three
+arguments.</p>
+
+<p>The first is <code>$evdata</code> which is an array, which may be blessed into
+<a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AAsync%3A%3AEvent">Couchbase::Client::Async::Event</a>.</p>
+
+<p>The <code>$evdata</code> structure contains the state-'glue' for interaction with the
+internal (C) event routines and their Perl dispatchers.</p>
+
+<p>The following will mention some useful fields for the <code>$evdata</code> structure. Note
+this is not an exhaustive listing (see that class' documentation for that) but
+a more practical guide as to what the fields are for, and how they may be used.</p>
+
+<dl>
+	<dt><code>fd</code></dt>
+		<dd><p>This read-only field contains the numeric file descriptor on which the C library
+will perform I/O functions. If your event loop supports watching file descriptor
+numbers directly, you may simply watch this number; otherwise, look at the next
+field</p></dd>
+	<dt><code>dupfh</code></dt>
+		<dd><p>This mutatable field contains an optional dup'd Perl filehandle. Some Perl event
+loops do not allow for watching a file descriptor directly and demand to be given
+a 'PerlIO' filehandle (conforming to the <a href="http://search.cpan.org/perldoc?IO%3A%3AHandle">IO::Handle</a> interface, or one of the
+things returned by <a href="http://search.cpan.org/perldoc?open">open</a>).</p></dd>
+		<dd><p>This filehandle should be a dup'd version of the <code>fd</code> field, the reason being
+that when the filehandle goes out of scope from perl, the underlying file
+<i>descriptor</i> will be <code>close()</code>d. Since there is not necessarily a one-to-one
+correlation between stream lifetimes as they exist in the Perl client, and their
+lifetimes as they exist in libcouchbase, it is recommended that the file
+descriptor be dup'd. In that way, close() on the dup'd file descriptor will not
+affect the file descriptor in the C side.</p></dd>
+		<dd><p>The filehandle stored in the <code>dupfh</code> field will remain active until the underlying
+<code>fd</code> is closed or changed.</p></dd>
+		<dd><p>The first time an event is created, the <code>dupfh</code> field will be undef, and
+the callback should check for this creation, and if true, create a new one,
+using the following idiom:</p></dd>
+<dd><pre>    open my $dupfh, &quot;&gt;&amp;&quot;, $evdata-&gt;fd;
+    $evdata-&gt;dupfh($dupfh);
+
+</pre></dd>		<dd><p>the <code>dupfh</code> field will persist the next time the <code>cb_update_event</code> callback
+is invoked.</p></dd>
+	<dt>opaque</dt>
+		<dd><p>This contains opaque data to be passed to our <a href="#HaveEvent">HaveEvent</a> package method. You
+must not modify this object in any way. Failure to comply will likely result in
+a segfault.</p></dd>
+</dl>
+<p>The third argument (we will get to the second argument later) is a bitfield of
+flags, describing which events to watch for. Flags may be a bitwise-OR'd
+combination of the following</p>
+
+<dl>
+	<dt><code>COUCHBASE_READ_EVENT</code></dt>
+		<dd><p>Dispatch event when the stream will not block on read()</p></dd>
+	<dt><code>COUCHBASE_WRITE_EVENT</code></dt>
+		<dd><p>Dispatch event when the stream will not block on write()</p></dd>
+</dl>
+<p>Consequently, it is the responsibility of this callback to ensure that <strong>only</strong>
+the I/O events specified in <code>$flags</code> are active, and that all others remain
+inactive (spuriously delivering write events is a very bad idea).</p>
+
+<p>To make life easier, the <code>$evdata</code> structure has a <code>old_flags</code> field which
+contains the active events before this callback was invoked. Thus, instead of
+explicitly disabling all non-listed events, one can do the following:</p>
+
+<pre>    my $events_to_delete = $evdata-&gt;old_flags &amp; (~$flags);
+
+</pre><p>and only handle the events mentioned in <code>$events_to_delete</code></p>
+
+<p>The <code>old_flags</code> will be set to the current value of <code>$flags</code> once the callback
+returns.</p>
+
+
+
+
+<p>The second argument (<code>$action</code>) specifies which type of update this is. It can
+be one of the following:</p>
+
+<dl>
+	<dt><code>EVACTION_WATCH</code></dt>
+		<dd><p>Request that the stream be watched for events</p></dd>
+	<dt><code>EVACTION_UNWATCH</code></dt>
+		<dd><p>Remove all watchers on this stream, and possibly do cleanup</p></dd>
+	<dt><code>EVACTION_SUSPEND</code></dt>
+		<dd><p>Temporarily disable the watching of events on this stream, but do not forget
+about which events are active</p></dd>
+	<dt><code>EVACTION_RESUME</code></dt>
+		<dd><p>Resume a suspended event</p></dd>
+</dl>
+<p>The suspension and resumption of events may be necessary so that libcouchbase
+only receives events when it is ready for them, without impacting performance by
+re-selecting all file descriptors.</p>
+
+<p><a href="http://search.cpan.org/perldoc?POE%3A%3AKernel">POE::Kernel</a> has <code>select_resume_read</code> and <code>select_pause_read</code>, for example.</p>
+
+
+
+
+<p>For the <code>EVACTION_WATCH</code> event, the implementation must have the event loop
+dispatch to a function that will ultimately do something of the following:</p>
+
+<pre>    Couchbase::Client::Async-&gt;HaveEvent($which, $evdata-&gt;opaque);
+
+</pre><p>Where the <code>$which</code> argument contains the event which ocurred (either
+<code>COUCHBASE_READ_EVENT</code> or <code>COUCHBASE_WRITE_EVENT</code>), and the <code>opaque</code> argument
+being the <code>opaque</code> field passed in (this) callback.</p>
+
+<p>See <a href="#HaveEvent">HaveEvent</a> for more details.</p>
+
+<h3 id="code_cb_update_timer_code"><code>cb_update_timer</code></h3>
+
+<pre>    cb_update_timer =&gt; sub {
+        my ($evdata,$action,$usecs) = @_;
+        my $timer_id = $evdata-&gt;pl_data;
+
+        if($action == EVACTION_WATCH) {
+            if(defined $timer_id) {
+                reschedule_timer($timer_id, $usecs / (1000*1000),
+                    callback =&gt; 'Couchbase::Client::Async::HaveData',
+                    args =&gt; ['Couchbase::Client::Async', 0, $evdata-&gt;opaque]);
+
+            } else {
+                $timer_id = schedule_timer(
+                    $usecs / (1000*1000) ...
+                );
+            }
+        } else {
+            delete_timer($evdata-&gt;pl_data);
+        }
+    };
+
+</pre><p>This callback is invoked to schedule an interval timer.
+It is passed three arguments:</p>
+
+<dl>
+	<dt><code>$evdata</code></dt>
+		<dd><p>The 'event'. See <a href="#cb_update_event">cb_update_event</a> for details.</p></dd>
+	<dt><code>$action</code></dt>
+		<dd><p>This is one of <code>EVACTION_WATCH</code> and <code>EVACTION_UNWATCH</code>.</p></dd>
+		<dd><p>For <code>EVACTION_WATCH</code>, a timer should be scheduled to trigger in the future, for
+<code>EVACTION_UNWATCH</code>, and active timer should be deleted.</p></dd>
+	<dt><code>$usecs</code></dt>
+		<dd><p>How many microseconds from now should the timer be triggered.</p></dd>
+</dl>
+<p>These timers should end up calling <a href="#HaveEvent">HaveEvent</a> when they expire. The first
+argument to <a href="#HaveEvent">HaveEvent</a> (the flags) is ignored, but it must still be passed
+the <code>opaque</code> object from <code>$evdata</code> (see <a href="#cb_update_event">cb_update_event</a> for details).</p>
+
+<p>It is common for timers to require some kind of internal identifier by which
+the event loop can allow their cancelling and postponing.</p>
+
+<p>In order to maintain the timer, the <code>$evdata</code> offers a Perl-only writeable
+<code>pl_data</code> field, which can hold anything you want it to.</p>
+
+<p>Timers should not be affected (or ever receive) <code>EVACTION_SUSPEND</code> or
+<code>EVACTION_RESUME</code> actions.</p>
+
+<h3 id="code_cb_waitdone_code"><code>cb_waitdone</code></h3>
+
+<p>This is called with no arguments whenever libcouchbase has determined it no longer
+needs to watch any file descriptors. Normally the <a href="#cb_update_timer">cb_update_timer</a> will be
+called with <code>EVACTION_SUSPEND</code> for all active file descriptor watchers.</p>
+
+<p>This can be used to signal other layers that there are no more pending user events
+to wait for.</p>
+
+<h3 id="code_cb_error_code"><code>cb_error</code></h3>
+
+<p>This is called with two arguments, the first an internal libcouchbase error number,
+and the second, a string describing the details of the error.</p>
+
+
+
+
+<h2 id="code_HaveEvent_code"><code>HaveEvent</code></h2>
+
+<p>This is the 'return trip' function which should be called whenever an event is
+ready. It is a package method and not an object method.</p>
+
+<p>It is called as so:</p>
+
+<pre>    Couchbase::Client::Async-&gt;HaveEvent($flags, $opaque);
+
+</pre><p>The <code>$flags</code> argument is only relevant for I/O events (and not timers). The
+<code>$opaque</code> argument must be supplied and contains an internal pointer to a private
+C data structure. RTFSC if you really wish to know what's inside there.</p>
+
+<h1 id="COUCHBASE_COMMANDS_AND_RESULTS">COUCHBASE COMMANDS AND RESULTS <a href="#TOP" class="toplink"><img alt="^" src="../../../up.gif" /></a></h1>
+
+<p>This contains the higher level inteface for issuing commands, and asynchronously
+awaiting for their results to trickle in.</p>
+
+<p>The asynchronous interface to this is a bit ugly, and is intended to be wrapped
+according to the style you prefer.</p>
+
+<p>There is only one function with which to issue commands:</p>
+
+<h2 id="code_request_code"><code>request</code></h2>
+
+<p>Issue couchbase command(s).</p>
+
+<pre>    $async-&gt;request(
+        PLCBA_CMD_*, REQTYPE_*,
+        sub {
+            my ($results,$arg) = @_;
+            print &quot;i am a result callback.\n&quot;;
+            printf(&quot;I have results for these keys: %s\n&quot;,
+                join(&quot;,&quot;, keys %$results));
+            printf(&quot;My request argument was $arg\n&quot;);
+        },
+        &quot;arg&quot;,
+        CBTYPE_*,
+        [....],
+    );
+
+</pre><p>Pretty complicated, eh?</p>
+
+<p>It was the only sane way to have a single request function without limiting the
+featureset or duplicating code an insane amount of times.</p>
+
+<p>The arguments are as follows:</p>
+
+<dl>
+	<dt>0</dt>
+		<dd><p>The command. This is one of the <code>PLCBA_CMD_*</code> macros, and are present in
+<a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AIDXConst">Couchbase::Client::IDXConst</a>.</p></dd>
+	<dt>1</dt>
+		<dd><p>Request type. This is one of <code>REQTYPE_SINGLE</code> or <code>REQTYPE_MULTI</code>. If the former
+is specified, then only one set of parameters for the command will be passed;
+if the latter, then this will be a single command which will operate on a multitude
+of keys.</p></dd>
+	<dt>2</dt>
+		<dd><p>Callback.</p></dd>
+		<dd><p>This is the callback which will be invoked when the command receives results. It
+is called with two arguments. The first argument is a hash reference with the
+command key(s) as its keys, and <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AReturn">Couchbase::Client::Return</a> objects as its
+values, which contain information about the response and status of the command.</p></dd>
+		<dd><p>The second argument is a user defined 'arg' defined next.</p></dd>
+	<dt>3</dt>
+		<dd><p>Argument</p></dd>
+		<dd><p>This is a dummy argument passed to the callback, and can be whatever you want.</p></dd>
+	<dt>4</dt>
+		<dd><p>Callback type.</p></dd>
+		<dd><p>This is one of <code>CBTYPE_COMPLETION</code> and <code>CBTYPE_INCREMENTAL</code>.</p></dd>
+		<dd><p>In the case of the former, the callback will only be invoked once, when all
+the results for all the keys have been gathered. In the case of the latter, the
+callback will be invoked for each new result received.</p></dd>
+		<dd><p>Note that the contents of the callback result hash is not automatically reset
+in between calls, so it is advisable to clear the hash (or delete relevant keys)
+if <code>CBTYPE_INCREMENTAL</code> is used.</p></dd>
+	<dt>5</dt>
+		<dd><p>Command arguments.</p></dd>
+		<dd><p>Either a <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AAsync%3A%3ARequest">Couchbase::Client::Async::Request</a> object, or an arrayref of such
+objects; depending on whether <code>REQTYPE_SINGLE</code> or <code>REQTYPE_MULTI</code> was specifed,
+respectively.</p></dd>
+		<dd><p>The <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AAsync%3A%3ARequest">Couchbase::Client::Async::Request</a> is a simple array, and it is not
+strictly required to bless into this object. See its documentation for which
+fields are provided, and which commands they apply to.</p></dd>
+		<dd><p>It may help to use my <a href="http://search.cpan.org/perldoc?Array%3A%3AAssign">Array::Assign</a> module to deal with the fields in the
+array.</p></dd>
+</dl>
+
+</div><div class="footer">generated by <a href="http://search.cpan.org/perldoc?Pod%3A%3AProjectDocs">Pod::ProjectDocs</a></div></body>
+</html>

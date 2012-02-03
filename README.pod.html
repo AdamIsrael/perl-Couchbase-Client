@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<title></title>
+<link rel="stylesheet" type="text/css" href="podstyle.css" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script type="text/javascript">
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  </script></head>
+<body>
+<div class="box">
+  <h1 class="t1">MyProject's Libraries</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="index.html">MyProject's Libraries</a> &gt; Perl Manuals &gt;
+  README
+</div>
+<div>
+<a href="src/README.pod">Source</a>
+</div>
+
+
+<div class="pod">
+<!-- INDEX START -->
+<h3 id="TOP">Index</h3>
+<ul>
+	<li><a href="#Introduction">Introduction</a><br />
+<ul>
+	<li><a href="#Synchronous_Interface_Couchbase_Clie">Synchronous Interface: Couchbase::Client</a></li>
+	<li><a href="#Legacy_Interface_Couchbase_Client_Co">Legacy Interface: Couchbase::Client::Compat</a></li>
+	<li><a href="#Asynchronous_Framework_for_Perl_Couc">Asynchronous Framework for Perl: Couchbase::Client::Async</a></li>
+	<li><a href="#Mock_Server_Interface_Couchbase_Mock">Mock Server Interface: Couchbase::MockServer</a></li>
+</ul>
+</li>
+	<li><a href="#Installing">Installing</a><br />
+<ul>
+	<li><a href="#Building_code_libcouchbase_code">Building <code>libcouchbase</code></a></li>
+	<li><a href="#Building_Couchbase_Client">Building Couchbase::Client</a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<!-- INDEX END -->
+
+<h1 id="Introduction">Introduction <a href="#TOP" class="toplink"><img alt="^" src="up.gif" /></a></h1>
+
+<p>Couch::Couchbase is a Perl client for Couchbase (http://www.couchbase.org).</p>
+
+<p>The couchbase client is a smart, vbucket-aware client. What this means is that
+Couchbase::Client can tap into your Couchbase cluster, with the client needing
+to be able to access (initially) only a single entry point.</p>
+
+<p>The module provides:</p>
+
+<h2 id="Synchronous_Interface_Couchbase_Clie">Synchronous Interface: Couchbase::Client</h2>
+
+<p>This is the simplest and most tested interface. The methods are self-explanatory.
+Additionally, the return type is complex and detailed, allowing error reporting
+for any unexpected conditions (something severely lacking in any Memcache client
+implementation).</p>
+
+<h2 id="Legacy_Interface_Couchbase_Client_Co">Legacy Interface: Couchbase::Client::Compat</h2>
+
+<p>Drop-in replacement for Cache::Memcached and Cache::Memcached::Fast.</p>
+
+<p>I can't say it's 100% compatible yet, but the basic methods have been implemented.
+Internally it just wraps around the new interface</p>
+
+<h2 id="Asynchronous_Framework_for_Perl_Couc">Asynchronous Framework for Perl: Couchbase::Client::Async</h2>
+
+<p>Provides the necessary functions and utilities needed to make a POE, IO::Async,
+etc. client for Couchbase.</p>
+
+<h2 id="Mock_Server_Interface_Couchbase_Mock">Mock Server Interface: Couchbase::MockServer</h2>
+
+<p>Interface to the Java <code>CouchbaseMock.jar</code>. This is a work in progress.</p>
+
+<h1 id="Installing">Installing <a href="#TOP" class="toplink"><img alt="^" src="up.gif" /></a></h1>
+
+<p>I will be focusing on installing and configuring <code>libcouchbase</code> itself, the C
+client library. It is assumed you have a functional installation of the couchbase
+server somewhere. If not, go to http://www.couchbase.org</p>
+
+<p>To use this module, you should have installed <code>libvbucket</code> (see the links on
+the side here http://www.couchbase.com/develop/c/current).</p>
+
+<p>As of 01/28/2011, you will need to download <code>libcouchbase</code> itself from
+github (the current release versions contain bugs which may break this module).</p>
+
+<h2 id="Building_code_libcouchbase_code">Building <code>libcouchbase</code></h2>
+
+
+
+
+<p><code>libcouchbase</code> itself depends on <code>libvbucket</code>, so make sure to install that
+(and its development libraries) first.</p>
+
+<p>Currently, I know of these dependencies:</p>
+
+<dl>
+	<dt>libevent &gt;= 1.4</dt>
+		<dd><p>For embedded default event loop functionality</p></dd>
+	<dt>java</dt>
+		<dd><p>For the Perl and C tests</p></dd>
+</dl>
+<p>Additionally, <code>libcouchbase</code> depends on header files available from the
+<code>engine-pu</code> branch of the <code>memcached</code> project. Note that actually building
+memcached itself is not required.</p>
+
+<p>Your best bet would be to do
+something like this:</p>
+
+<pre>    ~$ mkdir couch
+    ~$ git clone https://github.com/memcached/memcached.git -b engine-pu couch/memcached
+    ~$ git clone https://github.com/couchbase/libcouchbase.git couch/libcouchbase
+
+    #Get vbucket stuff:
+
+    # I pick RPM, since that's what my target production platform is:
+
+    ~$ wget http://packages.couchbase.com/clients/c/libvbucket1-1.8.0.1-1.x86_64.rpm
+    ~$ rpm -ivh libvbucket1-1.8.0.1-1.x86_64.rpm
+    ~$ wget http://packages.couchbase.com/clients/c/libvbucket-1.8.0.1.tar.gz
+    ~$ cd couch; tar xf ../libvbucket-1.8.0.1.tar.gz
+    ~$ ln -s libvbucket-1.8.0.1 libvbucket
+
+    
+
+
+    # Note for CentOS/RHEL 5 users, you will need to perform the autorun
+    # to generate the 'configure' script on a newer platform, then copy it over
+    # to your target platform
+
+    
+
+
+    ~$ cd couch/libcouchbase
+    ~$ ./config/autorun.sh
+
+    #make sure we know about the new memcached (and vbucket) headers:
+
+    ~$ CPPFLAGS='-I../memcached/include -I../libvbucket/include' ./configure
+
+    # (EL5: If configure complains about not finding libvbucket, try:)
+        ~$ ln -s /usr/lib64/libvbucket.so.1 /usr/lib64/libvbucket.so
+
+    
+
+
+    ~$ make
+
+    #optional, run some tests:
+    ~$ make check
+
+
+
+
+</pre><h2 id="Building_Couchbase_Client">Building Couchbase::Client</h2>
+
+<p>To build the perl client, you should edit the <code>PLCB_Config.pm</code> file, and
+change the keys <code>COUCHBASE_INCLUDE_PATH</code> and <code>COUCHBASE_LIBRARY_PATH</code> to their
+appropriate locations.</p>
+
+<p>If you were following the example above, your keys should look like this</p>
+
+<pre>    COUCHBASE_INCLUDE_PATH =&gt; &quot;~/couch/libcouchbase/include&quot;,
+    COUCHBASE_LIBRARY_PATH =&gt; &quot;~/couch/libcouchbase/.libs&quot;
+
+    #the '.libs' is an Autoconf thing, it seems.
+
+</pre><p>run</p>
+
+<pre>    $ perl Makefile.PL #you know the drill..
+    $ make test
+
+</pre><p>There are some top-level scripts. Some have meaning to only the author, some might
+be useful.</p>
+
+<p>Also, check out the runnable modules in the <code>t/</code> directory</p>
+
+
+</div><div class="footer">generated by <a href="http://search.cpan.org/perldoc?Pod%3A%3AProjectDocs">Pod::ProjectDocs</a></div></body>
+</html>

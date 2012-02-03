@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<title>Couchbase::Client</title>
+<link rel="stylesheet" type="text/css" href="../../podstyle.css" /><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script type="text/javascript">
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  </script></head>
+<body>
+<div class="box">
+  <h1 class="t1">MyProject's Libraries</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">MyProject's Libraries</a> &gt; Perl Modules &gt;
+  lib-Couchbase-Client
+</div>
+<div>
+<a href="../../src/lib/Couchbase/Client.pm">Source</a>
+</div>
+
+
+<div class="pod">
+<!-- INDEX START -->
+<h3 id="TOP">Index</h3>
+<ul>
+	<li><a href="#NAME">NAME</a></li>
+	<li><a href="#SYNOPSIS">SYNOPSIS</a><br />
+<ul>
+	<li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+	<li><a href="#BASIC_METHODS">BASIC METHODS</a><br />
+<ul>
+	<li><a href="#new_options">new(\%options)</a><br />
+<ul>
+	<li><a href="#Typical_Constructor_Options">Typical Constructor Options</a></li>
+	<li><a href="#Conversion_Options">Conversion Options</a></li>
+</ul>
+</li>
+	<li><a href="#get_key">get(key)</a></li>
+	<li><a href="#append">append</a></li>
+	<li><a href="#prepend">prepend</a></li>
+	<li><a href="#set_key_value_expiry">set(key, value [,expiry])</a></li>
+	<li><a href="#add_key_value_expiry">add(key, value [,expiry])</a></li>
+	<li><a href="#replace_key_value_expiry">replace(key, value [,expiry])</a></li>
+	<li><a href="#gets_key">gets(key)</a></li>
+	<li><a href="#cas_key_value_cas_expiry">cas(key, value, cas, [,expiry])</a></li>
+	<li><a href="#touch_key_expiry">touch(key, expiry)</a></li>
+	<li><a href="#arithmetic_key_delta_initial_expiry">arithmetic(key, delta, initial [,expiry])</a></li>
+	<li><a href="#incr_key_delta">incr(key [,delta])</a></li>
+	<li><a href="#decr_key_delta">decr(key [,delta])</a><br />
+<ul>
+	<li><a href="#NOTE_ABOUT_32_BIT_PERLS">NOTE ABOUT 32 BIT PERLS</a></li>
+</ul>
+</li>
+	<li><a href="#delete_key_cas">delete(key [,cas])</a></li>
+	<li><a href="#remove_key_cas">remove(key [,cas])</a></li>
+</ul>
+</li>
+	<li><a href="#MULTI_METHODS">MULTI METHODS</a><br />
+<ul>
+	<li><a href="#get_multi_keys">get_multi(@keys)</a></li>
+	<li><a href="#get_multi_keys-2">get_multi(\@keys)</a></li>
+	<li><a href="#gets_multi">gets_multi</a></li>
+	<li><a href="#touch_multi_key_exp">touch_multi([key, exp]..)</a></li>
+	<li><a href="#set_multi_key_gt_value_key_gt_value">set_multi([key =&gt; value, ...], [key =&gt; value, ...])</a></li>
+	<li><a href="#cas_multi_key_gt_value_cas">cas_multi([key =&gt; value, $cas, ...])</a></li>
+	<li><a href="#arithmetic_multi_key_gt_delta">arithmetic_multi([key =&gt; $delta, ...])</a></li>
+	<li><a href="#incr_multi_keys">incr_multi(@keys)</a></li>
+	<li><a href="#decr_multi_keys">decr_multi(@keys)</a></li>
+	<li><a href="#incr_multi_key_amount">incr_multi( [key, amount], ... )</a></li>
+	<li><a href="#decr_multi_key_amount">decr_multi( [key, amount], ... )</a></li>
+</ul>
+</li>
+	<li><a href="#INFORMATIONAL_METHODS">INFORMATIONAL METHODS</a><br />
+<ul>
+	<li><a href="#get_errors">get_errors()</a></li>
+	<li><a href="#stats_keys">stats( [keys, ..] )</a></li>
+	<li><a href="#stats">stats()</a></li>
+</ul>
+</li>
+	<li><a href="#SEE_ALSO">SEE ALSO</a></li>
+</ul>
+</li>
+	<li><a href="#AUTHOR_amp_COPYRIGHT">AUTHOR &amp; COPYRIGHT</a></li>
+</ul>
+<hr />
+<!-- INDEX END -->
+
+<h1 id="NAME">NAME <a href="#TOP" class="toplink"><img alt="^" src="../../up.gif" /></a></h1>
+
+<p>Couchbase::Client - Perl Couchbase Client</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS <a href="#TOP" class="toplink"><img alt="^" src="../../up.gif" /></a></h1>
+
+<pre>    use Couchbase::Client;
+    use Couchbase::Client::Errors;
+
+    my $client = Couchbase::Client-&gt;new({
+        server =&gt; 'localhost:8091',
+        username =&gt; 'some_user',
+        password =&gt; 'secret',
+        bucket =&gt; 'my_bucket'
+    });
+
+</pre><p>Possible connection errors:</p>
+
+<pre>    foreach my $err (@{$client-&gt;get_errors}) {
+        my ($errnum,$errstr) = @$err;
+        warn(&quot;Trouble ahead! Couchbase client says: $errstr.&quot;);
+    }
+    my $opret;
+
+</pre><p>Simple get and set:</p>
+
+<pre>    $opret = $client-&gt;set(Hello =&gt; &quot;World&quot;, 3600);
+    if(!$opret-&gt;is_ok) {
+        warn(&quot;Couldn't set 'Hello': &quot;. $opret-&gt;errstr);
+    }
+
+    $opret = $client-&gt;get(&quot;Hello&quot;);
+    if($opret-&gt;value) {
+        printf(&quot;Got %s for 'Hello'\n&quot;, $opret-&gt;value);
+    } else {
+        warn(&quot;Couldn't get value for 'Hello': &quot;. $opret-&gt;errstr);
+    }
+
+</pre><p>Update expiration:</p>
+
+<pre>    #make 'Hello' entry expire in 120 seconds
+    $client-&gt;touch(&quot;Hello&quot;, 120);
+
+</pre><p>Atomic CAS</p>
+
+<pre>    $opret = $client-&gt;get(&quot;Hello&quot;);
+    if($opret-&gt;value &amp;&amp; $opret-&gt;value != &quot;Planet&quot;) {
+        $opret = $client-&gt;cas(Hello =&gt; 'Planet', $opret-&gt;cas);
+
+        #check if atomic set was OK:
+        if(!$opret-&gt;is_ok) {
+            warn(&quot;Couldn't update: &quot;.$opret-&gt;errstr);
+        }
+    }
+
+</pre><h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>&lt;Couchbase::Client&gt; is the client for couchbase (http://www.couchbase.org),
+which is based partially on the <code>memcached</code> server and the Memcache protocol.</p>
+
+<p>In further stages, this module will attempt to retain backwards compatibility with
+older memcached clients like <a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached">Cache::Memcached</a> and <a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached%3A%3AFast">Cache::Memcached::Fast</a></p>
+
+<p>This client is mainly written in C and interacts with <code>libcouchbase</code> - the common
+couchbase client library, which must be installed.</p>
+
+<h2 id="BASIC_METHODS">BASIC METHODS</h2>
+
+<p>All of the protocol methods (<a href="#get">get</a>, <a href="#set">set</a>, etc) return a common return value of
+<a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AReturn">Couchbase::Client::Return</a> which stores operation-specific information and
+common status.</p>
+
+<p>For simpler versions of return values, see <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3ACompat">Couchbase::Client::Compat</a> which
+tries to support the <code>Cache::Memcached::*</code> interface.</p>
+
+<h3 id="new_options">new(\%options)</h3>
+
+<p><a href="#" onclick="toggleCode('method_new');return false;">[Source]</a></p>
+                                        <div class="method-source-code" id="method_new">
+                                        <pre>
+
+sub new {
+    my ($pkg,$opts) = @_;
+    my $arglist = _MkCtorIDX($opts);
+    
+    my $o = $pkg->construct($arglist);
+    my $errors = $o->get_errors;
+    foreach (@$errors) {
+        my ($errno,$errstr) = @$_;
+        log_err($errstr);
+    }
+    return $o;
+}
+</pre></div>
+
+<p>Create a new object. Takes a hashref of options. The following options are
+currently supported</p>
+
+<h4 id="Typical_Constructor_Options">Typical Constructor Options</h4>
+
+<dl>
+	<dt>server</dt>
+		<dd><p>The host and port of the couchbase server to connect to. If ommited, defaults to
+<code>localhost:8091</code>.</p></dd>
+	<dt>servers</dt>
+		<dd><p>Takes an arrayref of servers, currently only the first server is used, but this
+will change.</p></dd>
+	<dt>username, password</dt>
+		<dd><p>Authentication credentials for the connection. Defaults to NULL</p></dd>
+	<dt>bucket</dt>
+		<dd><p>The bucket name for the connection. Defaults to <code>default</code></p></dd>
+</dl>
+<h4 id="Conversion_Options">Conversion Options</h4>
+
+<p>The following options for conversion can be specified. Some of the compression
+code is borrowed from <a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached%3A%3AFast">Cache::Memcached::Fast</a>, with some modifications.</p>
+
+<p>First, a note about compression and conversion:</p>
+
+<p>Compression and conversion as done by legacy memcached clients in Perl and other
+languages relies on internal 'user-defined' protocol flags. Meaning, that the flags
+are free for use by any client implementation. These flags are of course not
+exposed to you, the end user, but it's worth reading about them.</p>
+
+<p>Legacy clients have used 'standard' flags for compression and serialization -
+flags which themselves only make sense to other hosts running the same client
+with the same understanding of the flag semantics.</p>
+
+<p>What this means for you:</p>
+
+<dl>
+	<dt>Storable-incompatibility and interoperability</dt>
+		<dd><p>When serializing a complex object, the default is to use <a href="http://search.cpan.org/perldoc?Storable">Storable</a>. Storable
+itself is ill-suited for cross-platform, cross-machine and cross-version storage.</p></dd>
+		<dd><p>Additionally, the flags set by other Perl clients to indicate <code>Storable</code> is the
+same flag used by other memcached clients in other languages to indicate other
+forms of serialization and/or compression.</p></dd>
+		<dd><p>Therefore it is highly unrecommended to use Storable if you want any other host
+to be able to access your key. If you are sure that all your hosts are running
+the same version of Storable on the same architecture then it might not fail.</p></dd>
+		<dd><p>Having said that, Storable is still enabled by default in order to retain
+drop-in compatibility with older clients.</p></dd>
+	<dt>Compression</dt>
+		<dd><p>Most clients have used the same flag to indicate Gzip compression. While legacy
+clients (<a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached">Cache::Memcached</a> and friends) provide options to provide your 'own'
+compression mechanism, this compression mechanism must be used throughout all
+hosts wishing to read and write to the key</p></dd>
+	<dt>Appending, Prepending</dt>
+		<dd><p>Compression and serialization are ill-suited for values which may be modified
+using <a href="#append">append</a> and <a href="#prepend">prepend</a>. Specifically the server will blindly append
+the data provided (in <i>byte</i> form) to the already-stored value.</p></dd>
+</dl>
+<p>Now, without further ado, we present conversion options, mostly copy-pasted from
+<a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached%3A%3AFast">Cache::Memcached::Fast</a></p>
+
+<dl>
+	<dt>compress_threshold</dt>
+<dd><pre>  compress_threshold =&gt; 10_000
+  (default: -1)
+
+</pre></dd>		<dd><p>The value is an integer.  When positive it denotes the threshold size
+in bytes: data with the size equal or larger than this should be
+compressed.  See <a href="#compress_ratio">compress_ratio</a> and <a href="#compress_methods">compress_methods</a> below.</p></dd>
+		<dd><p>Non-positive value disables compression.</p></dd>
+	<dt>compress_methods</dt>
+<dd><pre>  compress_methods =&gt; [ \&amp;IO::Compress::Gzip::gzip,
+                        \&amp;IO::Uncompress::Gunzip::gunzip ]
+  (default: [ sub { ${$_[1]} = Compress::Zlib::memGzip(${$_[0]}) },
+              sub { ${$_[1]} = Compress::Zlib::memGunzip(${$_[0]}) } ]
+   when Compress::Zlib is available)
+
+</pre></dd>		<dd><p>The value is a reference to an array holding two code references for
+compression and decompression routines respectively.</p></dd>
+		<dd><p>Compression routine is called when the size of the <i>$value</i> passed to
+<a href="#set">set</a> method family is greater than or equal to
+<a href="#compress_threshold">compress_threshold</a>.  The fact that
+compression was performed is remembered along with the data, and
+decompression routine is called on data retrieval with <a href="#get">get</a> method
+family.  The interface of these routines should be the same as for
+<strong>IO::Compress</strong> family (for instance see
+<a href="http://search.cpan.org/perldoc?IO%3A%3ACompress%3A%3AGzip#gzip">IO::Compress::Gzip::gzip</a> and
+<a href="http://search.cpan.org/perldoc?IO%3A%3AUncompress%3A%3AGunzip#gunzip">IO::Uncompress::Gunzip::gunzip</a>).
+I.e. compression routine takes a reference to scalar value and a
+reference to scalar where compressed result will be stored.
+Decompression routine takes a reference to scalar with compressed data
+and a reference to scalar where uncompressed result will be stored.
+Both routines should return true on success, and false on error.</p></dd>
+		<dd><p>By default we use <a href="http://search.cpan.org/perldoc?Compress%3A%3AZlib">Compress::Zlib</a> because as of this
+writing it appears to be much faster than
+<a href="http://search.cpan.org/perldoc?IO%3A%3AUncompress%3A%3AGunzip">IO::Uncompress::Gunzip</a>.</p></dd>
+	<dt><i>serialize_methods</i></dt>
+<dd><pre>  serialize_methods =&gt; [ \&amp;Storable::freeze, \&amp;Storable::thaw ],
+  (default: [ \&amp;Storable::nfreeze, \&amp;Storable::thaw ])
+
+</pre></dd>		<dd><p>The value is a reference to an array holding two code references for
+serialization and deserialization routines respectively.</p></dd>
+		<dd><p>Serialization routine is called when the <i>$value</i> passed to <a href="#set">set</a>
+method family is a reference.  The fact that serialization was
+performed is remembered along with the data, and deserialization
+routine is called on data retrieval with <a href="#get">get</a> method family.  The
+interface of these routines should be the same as for
+<a href="http://search.cpan.org/perldoc?Storable#nfreeze">Storable::nfreeze</a> and
+<a href="http://search.cpan.org/perldoc?Storable#thaw">Storable::thaw</a>.  I.e. serialization routine takes a
+reference and returns a scalar string; it should not fail.
+Deserialization routine takes scalar string and returns a reference;
+if deserialization fails (say, wrong data format) it should throw an
+exception (call <i>die</i>). The exception will be caught by the module
+and <a href="#get">get</a> will then pretend that the key hasn't been found.</p></dd>
+</dl>
+
+
+
+<h3 id="get_key">get(key)</h3>
+
+<p>Retrieves the value stored under <code>key</code>. Returns an <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AReturn">Couchbase::Client::Return</a>
+object.</p>
+
+<p>If the key is not found on the server, the returned object's <code>errnum</code> field
+will be set to <code>COUCHBASE_KEY_ENOENT</code></p>
+
+<h3 id="append">append</h3>
+
+<h3 id="prepend">prepend</h3>
+
+<h3 id="set_key_value_expiry">set(key, value [,expiry])</h3>
+
+<p>Attempts to set, prepend, or append the value of the key <code>key</code> to <code>value</code>,
+optionally setting an expiration time of <code>expiry</code> seconds in the future.</p>
+
+<p>Returns an <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AReturn">Couchbase::Client::Return</a> object.</p>
+
+<h3 id="add_key_value_expiry">add(key, value [,expiry])</h3>
+
+<p>Store the value on the server, but only if the key does not already exist.</p>
+
+<p>A &lt;COUCHBASE_KEY_EEXISTS&gt; will be set in the returned object's <code>errnum</code>
+field if the key does already exist.</p>
+
+<p>See <a href="#set">set</a> for explanation of arguments.</p>
+
+<h3 id="replace_key_value_expiry">replace(key, value [,expiry])</h3>
+
+<p>Replace the value stored under <code>key</code> with <code>value</code>, but only
+if the key does already exist on the server.</p>
+
+<p>See <a href="#get">get</a> for possible errors, and <a href="#set">set</a> for argument description.</p>
+
+
+
+
+<h3 id="gets_key">gets(key)</h3>
+
+<p>This is an alias to <a href="#get">get</a>. The CAS value is returned on any <code>get</code> operation.</p>
+
+<h3 id="cas_key_value_cas_expiry">cas(key, value, cas, [,expiry])</h3>
+
+<p>Tries to set the value of <code>key</code> to <code>value</code> but only if the opaque <code>cas</code> is
+equal to the CAS value on the server.</p>
+
+<p>The &lt;cas&gt; argument is retrieved as such:</p>
+
+<pre>    my $opret = $client-&gt;get(&quot;Key&quot;);
+    $client-&gt;set(&quot;Key&quot;, &quot;Value&quot;, $opret-&gt;cas);
+
+</pre><p>The last argument is the expiration offset as documented in <a href="#set">set</a></p>
+
+<h3 id="touch_key_expiry">touch(key, expiry)</h3>
+
+<p>Modifies the expiration time of <code>key</code> without fetching or setting it.</p>
+
+<h3 id="arithmetic_key_delta_initial_expiry">arithmetic(key, delta, initial [,expiry])</h3>
+
+<p>Performs an arithmetic operation on the <strong>numeric</strong> value stored in <code>key</code>.</p>
+
+<p>The value will be added to <code>delta</code> (which may be a negative number, in which
+case, <code>abs(delta)</code> will be subtracted).</p>
+
+<p>If <code>initial</code> is not <code>undef</code>, it is the value to which <code>key</code> will be initialized
+if it does not yet exist.</p>
+
+<h3 id="incr_key_delta">incr(key [,delta])</h3>
+
+<h3 id="decr_key_delta">decr(key [,delta])</h3>
+
+<p>Increments or decrements the numeric value stored under <code>key</code>, if it exists.</p>
+
+<p>If delta is specified, it is the <strong>absolute</strong> value to be added to or subtracted
+from the value. <code>delta</code> defaults to 1.</p>
+
+<p>These two functions are equivalent to doing:</p>
+
+<pre>    $delta ||= 1;
+    $delta = -$delta if $decr;
+    $o-&gt;arithmetic($key, $delta, undef);
+
+</pre><h4 id="NOTE_ABOUT_32_BIT_PERLS">NOTE ABOUT 32 BIT PERLS</h4>
+
+<p>If your Perl does not support 64 bit integer arithmetic, then <a href="http://search.cpan.org/perldoc?Math%3A%3ABigInt">Math::BigInt</a> will
+be used for conversion. Since Couchbase internally represents both deltas and values
+as <code>int64_t</code> or <code>uint64_t</code> values.</p>
+
+<p>TODO: would be nice to optionally provide 32-bit integer overflow options for
+performance.</p>
+
+<h3 id="delete_key_cas">delete(key [,cas])</h3>
+
+<h3 id="remove_key_cas">remove(key [,cas])</h3>
+
+<p>These two functions are identical. They will delete <code>key</code> on the server.</p>
+
+<p>If <code>cas</code> is also specified, the deletion will only be performed if <code>key</code> still
+maintains the same CAS value as <code>cas</code>.</p>
+
+
+
+
+<h2 id="MULTI_METHODS">MULTI METHODS</h2>
+
+<p>These methods gain performance and save on network I/O by batch-enqueueing
+operations.</p>
+
+<p>Of these, only the <code>get</code> and <code>touch</code> methods currently do 'true' multi batching.</p>
+
+<p>The other commands are still batched internally in the XS code, saving on xsub
+call overhead.</p>
+
+<p>All of these functions return a hash reference, whose keys are the keys specified
+for the operation, and whose values are <a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AReturn">Couchbase::Client::Return</a> objects
+specifying the result of the operation for that key.</p>
+
+<p>Calling the multi methods generally involves passing a series of array references.
+Each n-tuple passed in the list should contain arguments conforming to the
+calling convention of the non-multi command variant.</p>
+
+<p>Thus, where you would do:</p>
+
+<pre>    $rv = $o-&gt;foo($arg1, $arg2, $arg3)
+
+</pre><p>The <code>_multi</code> version would be</p>
+
+<pre>    $rvs = $o-&gt;foo_multi(
+        [$arg1_0, $arg2_0, $arg3_0],
+        [$arg1_1, $arg2_1, $arg3_1],
+    );
+
+</pre><p>The n-tuples themselves may either be grouped into a 'list', or an array reference
+itself:</p>
+
+<pre>    my @arglist = map { [$h-&gt;{key}, $k-&gt;{value} ] };
+
+    $o-&gt;set(@arglist);
+
+    #the same as:
+
+    $o-&gt;set( [ map [ { $h-&gt;{key}, $h-&gt;{value } ] }] );
+
+    #and the same as:
+
+    $o-&gt;set(map{ [$h-&gt;{key}, $h-&gt;{value}] });
+
+
+
+
+
+
+
+</pre><h3 id="get_multi_keys">get_multi(@keys)</h3>
+
+<h3 id="get_multi_keys-2">get_multi(\@keys)</h3>
+
+<h3 id="gets_multi">gets_multi</h3>
+
+<p>alias to <a href="#get_multi">get_multi</a></p>
+
+<h3 id="touch_multi_key_exp">touch_multi([key, exp]..)</h3>
+
+
+
+
+<h3 id="set_multi_key_gt_value_key_gt_value">set_multi([key =&gt; value, ...], [key =&gt; value, ...])</h3>
+
+
+
+
+<p>Performs multiple set operations on a multitude of keys. Input parameters are
+array references. The contents of these array references follow the same
+convention as calls to <a href="#set">set</a> do. Thus:</p>
+
+<pre>    $o-&gt;set_multi(['Foo', 'foo_value', 120], ['Bar', 'bar_value']);
+
+</pre><p>will set the key <code>foo</code> to <code>foo_value</code>, with an expiry of 120 seconds in the
+future. <code>bar</code> is set to <code>bar_value</code>, without any expiry.</p>
+
+<h3 id="cas_multi_key_gt_value_cas">cas_multi([key =&gt; value, $cas, ...])</h3>
+
+<p>Multi version of <a href="#cas">cas</a></p>
+
+<h3 id="arithmetic_multi_key_gt_delta">arithmetic_multi([key =&gt; $delta, ...])</h3>
+
+<p>Multi version of <a href="#arithmetic">arithmetic</a></p>
+
+<h3 id="incr_multi_keys">incr_multi(@keys)</h3>
+
+<h3 id="decr_multi_keys">decr_multi(@keys)</h3>
+
+<h3 id="incr_multi_key_amount">incr_multi( [key, amount], ... )</h3>
+
+<h3 id="decr_multi_key_amount">decr_multi( [key, amount], ... )</h3>
+
+
+
+
+<h2 id="INFORMATIONAL_METHODS">INFORMATIONAL METHODS</h2>
+
+<h3 id="get_errors">get_errors()</h3>
+
+<p>Returns a list of client/server errors which have ocurred during the last operation.</p>
+
+<p>The errors here differ from the errors returned by normal operations, as the
+operation errors provide status for a specific key, whereas <code>get_errors</code> provide
+status for the client connection in general.</p>
+
+<p>The return value is an arrayref of arrayrefs in the following format:</p>
+
+<pre>    get_errors() == [
+        [$errnum, $errstr],
+        [$errnum, $errstr],
+        ...
+    ]
+
+</pre><p>Modifications to the arrayref returned by <code>get_errors</code> will be reflected in
+future calls to this function, until a new operation is performed and the error
+stack is cleared.</p>
+
+<h3 id="stats_keys">stats( [keys, ..] )</h3>
+
+<h3 id="stats">stats()</h3>
+
+<p>Get statistics from all servers in the cluster.</p>
+
+<p>If <code>[keys..]</code> are specified, only the named keys will be gathered and returned</p>
+
+<p>The return format is as so:</p>
+
+<pre>    {
+        'server_name' =&gt; {
+            'key_name' =&gt; 'key_value',
+            ...
+        },
+
+        ...
+    }
+
+</pre><h2 id="SEE_ALSO">SEE ALSO</h2>
+
+<p><a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3AErrors">Couchbase::Client::Errors</a></p>
+
+<p>Status codes and their meanings.</p>
+
+<p><a href="http://search.cpan.org/perldoc?Couchbase%3A%3AClient%3A%3ACompat">Couchbase::Client::Compat</a> - subclass which conforms to the <a href="http://search.cpan.org/perldoc?Cache%3A%3AMemcached">Cache::Memcached</a>
+interface.</p>
+
+<p><a href="http://www.couchbase.org">http://www.couchbase.org</a> - Couchbase.</p>
+
+
+
+
+<h1 id="AUTHOR_amp_COPYRIGHT">AUTHOR &amp; COPYRIGHT <a href="#TOP" class="toplink"><img alt="^" src="../../up.gif" /></a></h1>
+
+<p>Copyright (C) 2012 M. Nunberg</p>
+
+<p>You may use and distributed this software under the same terms and conditions as
+Perl itself.</p>
+
+
+</div><div class="footer">generated by <a href="http://search.cpan.org/perldoc?Pod%3A%3AProjectDocs">Pod::ProjectDocs</a></div></body>
+</html>
